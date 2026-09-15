@@ -556,7 +556,7 @@ class SilentPaymentsMixin:
 
         # TX_MODIFIABLE must be cleared when output scripts are finalized
         for outp in self.outputs:
-            if outp.sp_v0_info and outp.script:
+            if outp.sp_v0_info and self.resolve_script(outp.script):
                 if self.txn_modifiable is not None and self.txn_modifiable != 0:
                     raise FatalPSBTIssue("TX_MODIFIABLE not cleared but SP output script is set")
 
@@ -749,6 +749,9 @@ class SilentPaymentsMixin:
 
             outp.script = computed
             scan_key_k[scan_key] = k + 1
+            # Clear TX_MODIFIABLE when output scripts are finalized
+            if self.txn_modifiable is not None and self.txn_modifiable != 0:
+                self.txn_modifiable &= ~0b11
 
     def _store_proof_entry(self, sk, scan_key, shares, proofs):
         """
